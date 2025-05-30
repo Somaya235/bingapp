@@ -113,15 +113,14 @@ public class ConfirmBookingServlet extends HttpServlet {
                     try (PreparedStatement empBookingStmt = conn.prepareStatement(empBookingSql)) {
                         empBookingStmt.setInt(1, adminUserId);
                         empBookingStmt.setInt(2, bookingId);
-                        empBookingStmt.executeUpdate();
-                    }
+                        empBookingStmt.addBatch();
 
-                    for (int opponentEmpId : opponentEmpIds) {
-                        try (PreparedStatement empBookingStmt = conn.prepareStatement(empBookingSql)) {
+                        for (int opponentEmpId : opponentEmpIds) {
                             empBookingStmt.setInt(1, opponentEmpId);
                             empBookingStmt.setInt(2, bookingId);
-                            empBookingStmt.executeUpdate();
+                            empBookingStmt.addBatch();
                         }
+                        empBookingStmt.executeBatch();
                     }
                 }
             }

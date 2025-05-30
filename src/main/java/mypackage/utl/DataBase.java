@@ -12,15 +12,12 @@ public class DataBase {
     static {
         HikariConfig config = new HikariConfig();
 
-        // بيانات الاتصال عندك
         config.setJdbcUrl("jdbc:postgresql://pg-204c693f-waleedgamal2821-a9bd.f.aivencloud.com:14381/defaultdb?sslmode=require");
         config.setUsername("avnadmin");
         config.setPassword("AVNS_4K6aK5QsXXUYxk4LVoY");
 
-        // تعريف السائق (غالباً مش ضروري مع الإصدارات الحديثة، لكن يمكن إضافته)
         config.setDriverClassName("org.postgresql.Driver");
 
-        // إعدادات Pool (تقدر تغيرها حسب احتياجك)
         config.setMaximumPoolSize(10);
         config.setMinimumIdle(2);
         config.setConnectionTimeout(30000);
