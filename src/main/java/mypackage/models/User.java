@@ -20,7 +20,7 @@ public class User {
     protected String gender;
     protected Date dob;
     private String role; // Add this line
-    private String season ="Ramadan";
+    private String season ="Ramadan"; // Default season is Ramadan";
 
 
     public String getSeason() {
@@ -53,6 +53,13 @@ public class User {
         this.gender = gender;
         this.dob = dob;
     }
+public void toggleSeason() {
+    if (this.season.equalsIgnoreCase("Regular")) {
+        this.season = "Ramadan";
+    } else {
+        this.season = "Regular";
+    }
+}
 
     // Method to login user
     public boolean login(String email, String password) throws SQLException {
