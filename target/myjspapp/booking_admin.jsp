@@ -25,27 +25,35 @@ String userGender = "Unknown";
 if (user != null && user.getGender() != null) {
     userGender = user.getGender();
 }
-    List<String> employeeNames = user.getAllEmployeeFullNames();
+    List<Map<String, String>> allEmployeeDetails = User.getAllEmployeeDetails();
+    
+    // Remove the logged-in user from the list if present
+    String loggedInUserFullName = "";
+    if (user != null) {
+        String firstName = user.getFirstName() != null ? user.getFirstName().trim() : "";
+        String lastName = user.getLastName() != null ? user.getLastName().trim() : "";
+        loggedInUserFullName = firstName + " " + lastName;
+    }
 
-    String username = (String) session.getAttribute("username");
-   
-  
-
-    // Remove the logged-in user from the list, trimming and ignoring case
-    List<String> toRemove = new ArrayList<>();
-    for (String emp : employeeNames) {
-        if (emp.trim().equalsIgnoreCase(username.trim())) {
-            toRemove.add(emp);
+    Iterator<Map<String, String>> iterator = allEmployeeDetails.iterator();
+    while (iterator.hasNext()) {
+        Map<String, String> employee = iterator.next();
+        if (employee.get("full_name").trim().equalsIgnoreCase(loggedInUserFullName.trim())) {
+            iterator.remove();
+            break;
         }
     }
-    employeeNames.removeAll(toRemove);
-     List<String> holidayList = User.getDisabledDaysBeforeHolidays();
+
+    String employeeDetailsJson = new Gson().toJson(allEmployeeDetails);
+
+    List<String> holidayList = User.getDisabledDaysBeforeHolidays();
     String holidayJson = new Gson().toJson(holidayList);
 
 
 %>
 
-<!-- Your CSS here (same as you provided) -->
+
+<!-- Your CSS here -->
 <style>
 .navbar {
       background: linear-gradient(to right,rgb(133, 216, 137), #1b5e20);
@@ -86,7 +94,6 @@ if (user != null && user.getGender() != null) {
 
 </head>
 <body>
-
 <!-- Navbar -->
 <div class="navbar">
   <img style="width:100px" src="logo.png" alt="Logo" class="logo">
@@ -157,14 +164,20 @@ if (user != null && user.getGender() != null) {
   </div> <!-- close form-area -->
 </div> <!-- close main-section -->
 
+<div class="loading-overlay" id="loadingOverlay" style="display: none;">
+  <div class="spinner"></div>
+</div>
+
 <!-- JavaScript -->
 <script>
+  // Global constants and variables
   const gender = "<%= userGender %>";
-  const players = [
-    <% for (String name : employeeNames) { %>
-      "<%= name %>",
-    <% } %>
-  ];
+  const allEmployees = <%= employeeDetailsJson %>;
+  const players = allEmployees.map(emp => ({ name: emp.full_name, gender: emp.gender }));
+  let opponentType = "Squad"; 
+  const loggedInUser = "<%= loggedInUserFullName %>"; // Moved to global scope
+
+  // Global functions
   function formatDateLocal(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0'); // Months 0-based
@@ -172,56 +185,12 @@ if (user != null && user.getGender() != null) {
   return `${year}-${month}-${day}`;
   }
 
-  let opponentType = "Squad";
-  document.addEventListener("DOMContentLoaded", function () {
- const holidays = <%= holidayJson %>;
-flatpickr("#date", {
-  minDate: new Date(),
-  maxDate: new Date(new Date().setDate(new Date().getDate() + 7)),
-  dateFormat: "Y-m-d",
-  disable: [
-    function(date) {
-      const dateStr = date.toISOString().slice(0,10); // format date as YYYY-MM-DD
-      if (date.getDay() === 5 || date.getDay() === 6) { // Friday or Saturday
-        return true;
-      }
-      if (holidays.includes(dateStr)) { // check if in holiday list
-        return true;
-      }
-      return false;
-    }
-  ],
-  onChange: function(selectedDates, dateStr, instance) {
-    if (!selectedDates.length) return;
-    const selectedDate = selectedDates[0];
-    const day = selectedDate.getDay();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    if (selectedDate < today) {
-      alert("Cannot select a past date.");
-      instance.clear();
-    }
-    // These days should already be disabled so this might be redundant:
-    else if (day === 5 || day === 6) {
-      alert("Booking not allowed on Fridays or Saturdays.");
-      instance.clear();
-    } else if (holidays.includes(selectedDate.toISOString().slice(0,10))) {
-      alert("Booking not allowed on holidays.");
-      instance.clear();
-    }
-  }
-});
-
-});
-
   function updateOpponentSelect() {
   const type = document.getElementById("type").value;
   opponentType = type;
   const container = document.getElementById("opponentList");
   const selectElements = document.querySelectorAll('select');
   
-  // Add green border to all select elements
   selectElements.forEach(select => select.classList.add('green-border'));
 
   container.innerHTML = "";
@@ -231,13 +200,13 @@ flatpickr("#date", {
     select.name = "opponent";
     select.required = true;
     select.size = 5;
-    select.classList.add("scrollable-select", 'green-border');  // Add the green-border class
+    select.classList.add("scrollable-select", 'green-border');
 
     players.forEach(player => {
       const option = document.createElement("option");
-      option.value = player;
-      option.textContent = player;
-      option.classList.add("green-player");  // Add the green-player class
+      option.value = player.name;
+      option.textContent = player.name;
+      option.classList.add("green-player");
       select.appendChild(option);
     });
 
@@ -246,12 +215,12 @@ flatpickr("#date", {
     players.forEach(player => {
       const label = document.createElement("label");
       label.classList.add("opponent-checkbox");
-      label.setAttribute("data-name", player.toLowerCase());
+      label.setAttribute("data-name", player.name.toLowerCase());
 
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
       checkbox.name = "opponents";
-      checkbox.value = player;
+      checkbox.value = player.name;
 
       checkbox.addEventListener("change", function () {
         const checked = container.querySelectorAll("input[name='opponents']:checked");
@@ -262,47 +231,82 @@ flatpickr("#date", {
       });
 
       label.appendChild(checkbox);
-      label.append(" " + player);
+      label.append(" " + player.name);
       container.appendChild(label);
     });
   }
+  filterOpponents(); // Always filter opponents after updating select type
 }
 
-
-
-
-  function filterOpponents() {
+function filterOpponents() {
   const query = document.getElementById("searchOpponent").value.toLowerCase();
   const container = document.getElementById("opponentList");
+
   container.innerHTML = "";
 
-  const filtered = players.filter(player => player.toLowerCase().includes(query));
+  const selectedSlots = document.querySelectorAll("input[name='timeSlots']:checked");
+  let femaleOnlySlotSelected = false;
 
-  if (opponentType === "Double") { // ✅ Fix here
+  // Helper function to convert HH:MI to minutes from midnight
+  const timeToMinutes = (timeStr) => {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
+  const TEN_AM_MINUTES = timeToMinutes('10:00');
+  const ELEVEN_AM_MINUTES = timeToMinutes('11:00');
+  const TEN_FIFTY_AM_MINUTES = timeToMinutes('10:50');
+
+  selectedSlots.forEach(slot => {
+      const slotStartTime = timeToMinutes(slot.getAttribute('data-start-time'));
+      const slotEndTime = timeToMinutes(slot.getAttribute('data-end-time'));
+      const slotGenderGroup = slot.getAttribute('data-gender-group');
+
+      // Check if the slot overlaps with 10:00-11:00 and is female-specific
+      if (slotGenderGroup === 'female' && 
+          ((slotStartTime >= TEN_AM_MINUTES && slotStartTime < ELEVEN_AM_MINUTES) ||
+           (slotEndTime > TEN_AM_MINUTES && slotEndTime <= ELEVEN_AM_MINUTES) ||
+           (slotStartTime < TEN_AM_MINUTES && slotEndTime > ELEVEN_AM_MINUTES) ||
+           (slotStartTime >= TEN_FIFTY_AM_MINUTES && slotEndTime <= ELEVEN_AM_MINUTES))) {
+          femaleOnlySlotSelected = true;
+      }
+  });
+
+  let filteredPlayers = players.filter(player => {
+      const matchesQuery = player.name.toLowerCase().includes(query);
+      if (femaleOnlySlotSelected) {
+          return matchesQuery && player.gender.toLowerCase() === 'female';
+      } else {
+          return matchesQuery;
+      }
+  });
+
+  if (opponentType === "Double") {
     const select = document.createElement("select");
     select.name = "opponent";
     select.required = true;
     select.size = 5;
     select.classList.add("scrollable-select");
 
-    filtered.forEach(player => {
+    filteredPlayers.forEach(player => {
       const option = document.createElement("option");
-      option.value = player;
-      option.textContent = player;
+      option.value = player.name;
+      option.textContent = player.name;
       select.appendChild(option);
     });
 
     container.appendChild(select);
   } else {
-    filtered.forEach(player => {
+    filteredPlayers.forEach(player => {
       const label = document.createElement("label");
       label.classList.add("opponent-checkbox");
-      label.setAttribute("data-name", player.toLowerCase());
+      label.setAttribute("data-name", player.name.toLowerCase());
 
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
       checkbox.name = "opponents";
-      checkbox.value = player;
+      checkbox.value = player.name;
+      checkbox.setAttribute('data-gender', player.gender);
 
       checkbox.addEventListener("change", function () {
         const checked = container.querySelectorAll("input[name='opponents']:checked");
@@ -313,20 +317,19 @@ flatpickr("#date", {
       });
 
       label.appendChild(checkbox);
-      label.append(" " + player);
+      label.append(" " + player.name);
       container.appendChild(label);
     });
   }
 }
 
-  function checkTimeSlotLimit() {
+function checkTimeSlotLimit() {
     const checked = document.querySelectorAll("input[name='timeSlots']:checked");
     if (checked.length > 5) {
       alert("You can select up to 5 time slots only.");
       event.target.checked = false;
     }
-  }
-
+}
 
 function validateForm() {
   const type = document.getElementById("type").value;
@@ -343,20 +346,65 @@ function validateForm() {
     return false;
   }
 
+  let femaleOnlySlotSelected = false;
+
+  // Helper function to convert HH:MI to minutes from midnight
+  const timeToMinutes = (timeStr) => {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
+  const TEN_AM_MINUTES = timeToMinutes('10:00');
+  const ELEVEN_AM_MINUTES = timeToMinutes('11:00');
+  const TEN_FIFTY_AM_MINUTES = timeToMinutes('10:50');
+
+  selectedTimeSlots.forEach(slot => {
+      const slotStartTime = timeToMinutes(slot.getAttribute('data-start-time'));
+      const slotEndTime = timeToMinutes(slot.getAttribute('data-end-time'));
+      const slotGenderGroup = slot.getAttribute('data-gender-group');
+
+      // Check if the slot overlaps with 10:00-11:00 and is female-specific
+      if (slotGenderGroup === 'female' && 
+          ((slotStartTime >= TEN_AM_MINUTES && slotStartTime < ELEVEN_AM_MINUTES) ||
+           (slotEndTime > TEN_AM_MINUTES && slotEndTime <= ELEVEN_AM_MINUTES) ||
+           (slotStartTime < TEN_AM_MINUTES && slotEndTime > ELEVEN_AM_MINUTES) ||
+           (slotStartTime >= TEN_FIFTY_AM_MINUTES && slotEndTime <= ELEVEN_AM_MINUTES))) {
+          femaleOnlySlotSelected = true;
+      }
+  });
+
   if (type === "Squad") {
     const selectedOpponents = document.querySelectorAll("input[name='opponents']:checked");
     if (selectedOpponents.length !== 3) {
       alert("In Squad, you must select exactly 3 partners.");
       return false;
     }
+    
+    if (femaleOnlySlotSelected) {
+        for (let i = 0; i < selectedOpponents.length; i++) {
+            const opponentName = selectedOpponents[i].value;
+            const opponent = players.find(p => p.name === opponentName);
+            if (opponent && opponent.gender.toLowerCase() !== 'female') {
+                alert("Male players cannot be selected for 10:00-11:00 slots.");
+                return false;
+            }
+        }
+    }
+
     const selectedOpponentList = Array.from(selectedOpponents).map(cb => cb.value);
-    console.log("Selected Opponents:", selectedOpponentList); // ✅ This should now show
   }
 
   if (type === "Double") {
     const opponentSelect = document.querySelector("select[name='opponent']");
-    const selectedOpponent = opponentSelect?.value || null;
-    console.log("Selected Opponent:", selectedOpponent); // ✅ This should also show
+    const selectedOpponentName = opponentSelect?.value || null;
+
+    if (femaleOnlySlotSelected && selectedOpponentName) {
+        const opponent = players.find(p => p.name === selectedOpponentName);
+        if (opponent && opponent.gender.toLowerCase() !== 'female') {
+            alert("Male players cannot be selected for 10:00-11:00 slots.");
+            return false;
+        }
+    }
   }
 
   return true;
@@ -369,18 +417,14 @@ function triggerCalendar() {
   }
 }
 
-
-document.addEventListener('DOMContentLoaded', function() {
-    const dateInput = document.getElementById('date');
-    const genderSelect = document.getElementById('gender');
-
 function fetchAvailableSlots() {
+    const dateInput = document.getElementById('date');
     const selectedDate = dateInput.value;
-    const selectedGender = gender;
- const loadingOverlay = document.getElementById('loadingOverlay');
+    const selectedGender = gender; 
+    const loadingOverlay = document.getElementById('loadingOverlay');
 
     if (!selectedDate) return;
-     loadingOverlay.style.display = 'flex';
+    loadingOverlay.style.display = 'flex';
 
     fetch('GetAvailableSlotsServlet', {
         method: 'POST',
@@ -389,60 +433,80 @@ function fetchAvailableSlots() {
         },
         body: 'date1=' + encodeURIComponent(selectedDate) + '&gender=' + encodeURIComponent(selectedGender)
     })
-    .then(response => response.text())
-    .then(data => {
+    .then(response => {
+        loadingOverlay.style.display = 'none';
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json(); 
+    })
+    .then(slots => {
         const slotContainer = document.getElementById('timeSlotsContainer');
-        slotContainer.innerHTML = data;
+        slotContainer.innerHTML = '<label>Select Time Slots (max 5)</label>';
 
-        // Initially disable and hide opponent section
+        if (slots.length === 0) {
+            slotContainer.innerHTML += '<p>No slots available for this date and gender.</p>';
+            document.getElementById('searchOpponent').disabled = true;
+            document.getElementById('opponentContainer').style.display = 'none';
+            return;
+        }
+
+        slots.forEach(slot => {
+            const div = document.createElement('div');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.name = 'timeSlots';
+            checkbox.value = slot.slot_id;
+            checkbox.id = 'slot-' + slot.slot_id;
+            checkbox.setAttribute('data-start-time', slot.start_time);
+            checkbox.setAttribute('data-end-time', slot.end_time);
+            checkbox.setAttribute('data-gender-group', slot.gender_group);
+            checkbox.onchange = checkTimeSlotLimit; 
+
+            const label = document.createElement('label');
+            label.htmlFor = 'slot-' + slot.slot_id;
+            label.textContent = slot.start_time + ' - ' + slot.end_time;
+
+            div.appendChild(checkbox);
+            div.appendChild(label);
+            slotContainer.appendChild(div);
+        });
+
         const opponentSearch = document.getElementById('searchOpponent');
         const opponentContainer = document.getElementById('opponentContainer');
         opponentSearch.disabled = true;
         opponentContainer.style.display = 'none';
 
-        // Attach event listeners to time slot checkboxes
         const checkboxes = slotContainer.querySelectorAll("input[name='timeSlots']");
         checkboxes.forEach(cb => {
-            cb.addEventListener('change', () => {
-                const selected = slotContainer.querySelectorAll("input[name='timeSlots']:checked");
-                if (selected.length > 0) {
-                    opponentSearch.disabled = false;
-                    opponentContainer.style.display = 'block';
-                    updateOpponentSelect();
-                } else {
-                    opponentSearch.disabled = true;
-                    opponentContainer.style.display = 'none';
-                }
-            });
+            cb.addEventListener('change', updateOpponentSelectionBasedOnTimeSlot);
         });
     })
-    .catch(error => console.error('Error fetching slots:', error))
-    .finally(() => {
-        // Hide loader
+    .catch(error => {
+        console.error('Error fetching slots:', error);
         loadingOverlay.style.display = 'none';
+        const slotContainer = document.getElementById('timeSlotsContainer');
+        slotContainer.innerHTML = '<label>Select Time Slots (max 5)</label><p>Error loading slots. Please try again.</p>';
     });
 }
 
+function updateOpponentSelectionBasedOnTimeSlot() {
+    const opponentSearch = document.getElementById('searchOpponent');
+    const opponentContainer = document.getElementById('opponentContainer');
+    const checkedSlots = document.querySelectorAll("input[name='timeSlots']:checked");
 
-
-    dateInput.addEventListener('change', fetchAvailableSlots);
-  // fetch when gender changes too!
-});
-<%
-String loggedInUserFullName = "";
-if (user != null) {
-    String firstName = user.getFirstName() != null ? user.getFirstName().trim() : "";
-    String lastName = user.getLastName() != null ? user.getLastName().trim() : "";
-    loggedInUserFullName = firstName + " " + lastName;
+    if (checkedSlots.length > 0) {
+        opponentSearch.disabled = false;
+        opponentContainer.style.display = 'block';
+        filterOpponents(); 
+    } else {
+        opponentSearch.disabled = true;
+        opponentContainer.style.display = 'none';
+    }
+    checkTimeSlotLimit(); 
 }
-%>
 
-const loggedInUser = "<%= loggedInUserFullName %>";
-console.log("Logged in user full name:", loggedInUser);
-
-  document.addEventListener('DOMContentLoaded', function () {
-
-    function checkPlayerBookingLimit(empName) {
+function checkPlayerBookingLimit(empName) {
       const selectedDate = document.getElementById("date").value;
       const selectedSlots = document.querySelectorAll("input[name='timeSlots']:checked").length;
       const loadingOverlay = document.getElementById('loadingOverlay');
@@ -465,7 +529,6 @@ console.log("Logged in user full name:", loggedInUser);
         if (result.trim() === "false") {
           alert(empName + " has exceeded the booking limit for this day.");
 
-          // Uncheck Squad checkboxes
           const checkboxes = document.querySelectorAll("input[name='opponents']");
           checkboxes.forEach(box => {
             if (box.value === empName) {
@@ -473,13 +536,11 @@ console.log("Logged in user full name:", loggedInUser);
             }
           });
 
-          // Deselect in Double select box
           const select = document.querySelector("select[name='opponent']");
           if (select && select.value === empName) {
             select.value = "";
           }
 
-          // Uncheck the user's own time slot if this is self-check
           if (empName === loggedInUser) {
             const timeSlots = document.querySelectorAll("input[name='timeSlots']:checked");
             timeSlots.forEach(slot => slot.checked = false);
@@ -488,42 +549,75 @@ console.log("Logged in user full name:", loggedInUser);
       })
   .catch(error => console.error('Error fetching slots:', error))
     .finally(() => {
-        // Hide loader
         loadingOverlay.style.display = 'none';
     });
     }
 
-    // 🟩 Validate the logged-in user when selecting time slots
-    document.getElementById("timeSlotsContainer").addEventListener("change", function (event) {
-      const target = event.target;
 
-      if (target && target.name === "timeSlots" && target.checked) {
-        checkPlayerBookingLimit(loggedInUser);
-      }
-    });
+document.addEventListener('DOMContentLoaded', function() {
+  const dateInput = document.getElementById('date');
+  const genderSelect = document.getElementById('gender');
+  const holidays = <%= holidayJson %>;
 
-    // 🟩 Validate opponent selection (Squad & Double)
-    document.getElementById("opponentList").addEventListener("change", function (event) {
-      const target = event.target;
-
-      if (target && (target.name === "opponents" || target.name === "opponent")) {
-        const empName = target.value;
-
-        if (target.checked || target.tagName === "SELECT") {
-          checkPlayerBookingLimit(empName);
+  flatpickr("#date", {
+    minDate: new Date(),
+    maxDate: new Date(new Date().setDate(new Date().getDate() + 7)),
+    dateFormat: "Y-m-d",
+    disable: [
+      function(date) {
+        const dateStr = date.toISOString().slice(0,10);
+        if (date.getDay() === 5 || date.getDay() === 6) {
+          return true;
         }
+        if (holidays.includes(dateStr)) {
+          return true;
+        }
+        return false;
       }
-});
+    ],
+    onChange: function(selectedDates, dateStr, instance) {
+      if (!selectedDates.length) return;
+      const selectedDate = selectedDates[0];
+      const day = selectedDate.getDay();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
+      if (selectedDate < today) {
+        alert("Cannot select a past date.");
+        instance.clear();
+      } else if (day === 5 || day === 6) {
+        alert("Booking not allowed on Fridays or Saturdays.");
+        instance.clear();
+      } else if (holidays.includes(selectedDate.toISOString().slice(0,10))) {
+        alert("Booking not allowed on holidays.");
+        instance.clear();
+      }
+      fetchAvailableSlots();
+    }
   });
 
-  // Initialize opponent list on load
-  window.onload = updateOpponentSelect;
-</script>
-<div class="loading-overlay" id="loadingOverlay" style="display: none;">
-  <div class="spinner"></div>
-</div>
+  dateInput.addEventListener('change', fetchAvailableSlots);
 
+  document.getElementById("timeSlotsContainer").addEventListener("change", function (event) {
+    const target = event.target;
+    if (target && target.name === "timeSlots" && target.checked) {
+      checkPlayerBookingLimit(loggedInUser);
+    }
+  });
+
+  document.getElementById("opponentList").addEventListener("change", function (event) {
+    const target = event.target;
+    if (target && (target.name === "opponents" || target.name === "opponent")) {
+      const empName = target.value;
+      if (target.checked || target.tagName === "SELECT") {
+        checkPlayerBookingLimit(empName);
+      }
+    }
+  });
+
+  updateOpponentSelect();
+});
+</script>
 
 </body>
 </html>

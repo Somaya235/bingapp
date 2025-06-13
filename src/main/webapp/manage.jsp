@@ -55,6 +55,7 @@ String successMsg = null;
 <html>
 <head>
     <title>Manage</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="styles/report.css">
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
       <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
@@ -367,91 +368,35 @@ form {
 
     <h2>Manage</h2>
 
-    <form method="get" action="manage.jsp">
-  
-  
-      
-       <div class="filter-group">
-         <label for="date">Date:</label>
-        <input type="date" id="date" name="date" />
-        <button type="submit">Search</button>
-  <label for="name">Player Name:</label>
-  <input type="text" id="name" name="name" 
-         value="<%= request.getParameter("name") != null ? request.getParameter("name") : "" %>" 
-         placeholder="Search player..." onkeyup="filterTable()" />
-  
-  <label for="status">Status:</label>
-  <select id="status" name="status" onchange="filterTable()">
-    <option value="">All</option>
-    <option value="booked" <%= "booked".equals(request.getParameter("status")) ? "selected" : "" %>>Booked</option>
-    <option value="cancelled" <%= "cancelled".equals(request.getParameter("status")) ? "selected" : "" %>>cancelled</option>
-  </select>
-</div>
-
-
-    </form>
+    <div class="filter-group">
+         <label for="dateFilter">Date:</label>
+        <input type="text" id="dateFilter" name="dateFilter" placeholder="Select Date" />
+        <label for="name">Player Name:</label>
+        <input type="text" id="name" name="name" placeholder="Search player..." />
+        <label for="status">Status:</label>
+        <select id="status" name="status">
+            <option value="">All</option>
+            <option value="booked">Booked</option>
+            <option value="cancelled">Cancelled</option>
+        </select>
+    </div>
 
     <div class="slots-card">
         <div class="scroll-table">
-            <table>
+            <table id="appointmentsTable">
                 <thead>
                     <tr>
-                        <th>Time</th>
                         <th>Players</th>
+                        <th>Appointment Date</th>
+                        <th>Time</th>
+                        <th>Service</th>
                         <th>Status</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                <%
-                    String dateParam = request.getParameter("date");
-                    if (dateParam != null && !dateParam.isEmpty()) {
-                        try {
-                            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                            java.util.Date parsedDate = sdf.parse(dateParam);
-                            java.sql.Date sqlDate = new java.sql.Date(parsedDate.getTime());
-
-                            List<Map<String, String>> reportData = Admin.viewReport(sqlDate);
-                            for (Map<String, String> record : reportData) {
-                                String slotTime = record.get("slot_time");
-                                String players = record.get("players");
-                                String status = record.get("status");
-                %>
-                    <tr>
-                        <td><%= slotTime %></td>
-                        <td><%= (players != null ? players : "No players booked") %></td>
-                        <td><%= (status != null ? status : "Unknown") %></td>
-                      <td>
-<%
-    String bookingIdForButton = record.get("booking_id"); // Use a different variable name to avoid conflict
-    if ("booked".equalsIgnoreCase(status) && bookingIdForButton != null) {
-%>
-    <button type="button" class="delete-button" data-booking-id="<%= bookingIdForButton %>" onclick="return confirmAndDelete(<%= bookingIdForButton %>)">
-        <i class="fas fa-trash"></i>
-    </button>
-<%
-    } else {
-%>
-    &mdash;  <!-- or empty if you want -->
-<%
-    }
-%>
-</td>
-                    </tr>
-                <%
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                %>
-                    <tr><td colspan="4">Error loading report.</td></tr>
-                <%
-                        }
-                    } else {
-                %>
-                    <tr><td colspan="4">Please select a date to view report.</td></tr>
-                <%
-                    }
-                %>
+                    <!-- Appointments will be loaded here by manage.js -->
+                    <tr><td colspan="7">Loading appointments...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -459,7 +404,7 @@ form {
 <h3 style="text-align: center; color:green ;">Select a Holiday</h3>
 <center>
 <form method="post">
-    <input type="date" name="day_date"  >
+    <input type="date" name="day_date" id="holidayDateInput">
     <button type="submit">Add Holiday</button>
 </form>
 </center>
@@ -468,13 +413,13 @@ form {
 <% } %>
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="scripts/manage.js"></script>
 
 
 
     
 <script>
-  flatpickr("#holidayPicker", {
-    mode: "multiple",
+  flatpickr("#holidayDateInput", {
     dateFormat: "Y-m-d"
   });
   // Optionally add client-side filtering of table rows while typing

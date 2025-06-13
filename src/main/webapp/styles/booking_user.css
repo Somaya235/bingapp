@@ -349,3 +349,14 @@ select:active {
   width: 10px;
   height: 10px;
 }
+
+.time-slot-scroll div {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px; /* Add a small margin between each time slot */
+}
+
+.time-slot-scroll div label {
+  margin-top: 0;
+  margin-left: 5px; /* Add some space between checkbox and text */
+}
