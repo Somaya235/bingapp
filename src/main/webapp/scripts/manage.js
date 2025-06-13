@@ -58,9 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             row.innerHTML = `
                 <td>${item.players}</td>
-                <td>${item.appointmentDate}</td>
-                <td>${item.startTime} - ${item.endTime}</td>
-                <td>${item.service}</td>
+                <td>${item.startTime}</td>  <!-- startTime is actually slot_time -->
                 <td>${item.status}</td>
                 <td>
                     ${item.status === 'booked' ? `<a href="#" class="action-link delete-action" data-id="${item.id}"><i class="fas fa-trash"></i></a>` : '&mdash;'}

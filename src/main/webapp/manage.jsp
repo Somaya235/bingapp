@@ -387,9 +387,7 @@ form {
                 <thead>
                     <tr>
                         <th>Players</th>
-                        <th>Appointment Date</th>
                         <th>Time</th>
-                        <th>Service</th>
                         <th>Status</th>
                         <th>Action</th>
                     </tr>

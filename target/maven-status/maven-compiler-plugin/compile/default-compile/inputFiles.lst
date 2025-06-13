@@ -1,13 +1,13 @@
-E:\projects\bingapp-1\src\main\java\mypackage\servlets\ConfirmBookingServlet.java
-E:\projects\bingapp-1\src\main\java\mypackage\models\GameSlot.java
-E:\projects\bingapp-1\src\main\java\mypackage\models\User.java
-E:\projects\bingapp-1\src\main\java\mypackage\models\Booking.java
-E:\projects\bingapp-1\src\main\java\mypackage\utl\DataBase.java
-E:\projects\bingapp-1\src\main\java\mypackage\models\GameResult.java
-E:\projects\bingapp-1\src\main\java\mypackage\servlets\ManageApiServlet.java
-E:\projects\bingapp-1\src\main\java\mypackage\models\Profile.java
-E:\projects\bingapp-1\src\main\java\mypackage\models\Admin.java
-E:\projects\bingapp-1\src\main\java\mypackage\models\RegularEmployee.java
-E:\projects\bingapp-1\src\main\java\mypackage\servlets\CheckBookingLimitServlet.java
-E:\projects\bingapp-1\src\main\java\mypackage\servlets\DeleteBookingServlet.java
-E:\projects\bingapp-1\src\main\java\mypackage\servlets\GetAvailableSlotsServlet.java
+d:\booking project\bingapp\src\main\java\mypackage\servlets\ManageApiServlet.java
+d:\booking project\bingapp\src\main\java\mypackage\models\GameResult.java
+d:\booking project\bingapp\src\main\java\mypackage\models\GameSlot.java
+d:\booking project\bingapp\src\main\java\mypackage\models\Profile.java
+d:\booking project\bingapp\src\main\java\mypackage\servlets\CheckBookingLimitServlet.java
+d:\booking project\bingapp\src\main\java\mypackage\servlets\GetAvailableSlotsServlet.java
+d:\booking project\bingapp\src\main\java\mypackage\models\Booking.java
+d:\booking project\bingapp\src\main\java\mypackage\models\RegularEmployee.java
+d:\booking project\bingapp\src\main\java\mypackage\models\Admin.java
+d:\booking project\bingapp\src\main\java\mypackage\utl\DataBase.java
+d:\booking project\bingapp\src\main\java\mypackage\servlets\DeleteBookingServlet.java
+d:\booking project\bingapp\src\main\java\mypackage\servlets\ConfirmBookingServlet.java
+d:\booking project\bingapp\src\main\java\mypackage\models\User.java
