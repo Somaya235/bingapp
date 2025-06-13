@@ -1,0 +1,65 @@
+*{
+    padding: 0px;
+    margin:0px;
+    box-sizing: border-box;
+   
+}
+.container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  font-family: 'Poppins', Arial, sans-serif;
+  background-repeat: no-repeat;
+  /* Makes the image fill the container */
+
+}
+.img{
+  height: 100vh;
+  width: 100%;
+}
+.backimg {
+  display: none; /* We don't need this anymore since background is applied on .container */
+}
+
+.login-form {
+  width: 35%;
+  margin-left: auto; /* Pushes the form to the right */
+  padding: 60px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 25px;
+  background-color: rgba(255, 255, 255, 0.85); /* Slight white overlay for readability */
+  height: 100vh;
+
+}
+
+
+
+.username,
+.password {
+  width: 80%;
+  height: 60px;
+  padding: 15px;
+  border: none;
+  border-radius: 45px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  font-size: 16px;
+  background-color: rgb(233, 233, 233);
+}
+
+.button1 {
+  width: 75%;
+  height: 60px;
+  background-color: #2b9d5c;
+  color: white;
+  border: none;
+  border-radius: 45px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.button1:hover {
+  background-color: #45a049;
+}

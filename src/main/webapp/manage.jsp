@@ -2,13 +2,9 @@
 <%@ page import="java.sql.Date" %>
 
 <%
-  User user = (User) session.getAttribute("loggedInUser");
-    if (user == null) {
-        response.sendRedirect("login.jsp");
-        return;
-    }
-    // Only process deletion on POST
+    request.setCharacterEncoding("UTF-8");
 
+    // Only process deletion on POST
     if ("POST".equalsIgnoreCase(request.getMethod())) {
         String deleteBookingIdStr = request.getParameter("deleteBookingId");
         if (deleteBookingIdStr != null) {
@@ -59,13 +55,13 @@ String successMsg = null;
 <html>
 <head>
     <title>Manage</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="styles/report.css">
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
       <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
 
 </head>
 <style>
-
 body {
     font-family: 'Poppins', sans-serif;
     margin: 0;
@@ -353,56 +349,7 @@ form {
 
 }
 
-/* Switch Style */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 90px;
-  height: 25px;
-}
 
-.switch input { 
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #ccc;
-  transition: 0.4s;
-  border-radius: 34px;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 19px;
-  width: 19px;
-  left: 3px;
-  bottom: 3px;
-  background-color: white;
-  transition: 0.4s;
-  border-radius: 50%;
-}
-
-input:checked + .slider {
-  background-color: #2e7d32;
-}
-
-input:checked + .slider:before {
-  transform: translateX(24px);
-}
-
-.slider.round {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: black;
-    font-size: 12px;
-}
 
 </style>
 <body>
@@ -413,16 +360,6 @@ input:checked + .slider:before {
             <a href="booking_admin.jsp">Book</a>
             <a href="profile_admin.jsp">Profile</a>
             <a href="manage.jsp">Manage</a>
-
-<form action="seasonToggle.jsp" method="post">
-    <label for="seasonSwitch">Season:</label>
-    <input type="checkbox" name="seasonSwitch" id="seasonSwitch" onchange="this.form.submit()"
-           <%= user.getSeason().equals("Ramadan") ? "checked" : "" %> >
-    <span><%= user.getSeason() %></span>
-</form>
-
-
-
             
         </div>
     </div>
@@ -431,91 +368,35 @@ input:checked + .slider:before {
 
     <h2>Manage</h2>
 
-    <form method="get" action="manage.jsp">
-  
-  
-      
-       <div class="filter-group">
-         <label for="date">Date:</label>
-        <input type="date" id="date" name="date" />
-        <button type="submit">Search</button>
-  <label for="name">Player Name:</label>
-  <input type="text" id="name" name="name" 
-         value="<%= request.getParameter("name") != null ? request.getParameter("name") : "" %>" 
-         placeholder="Search player..." onkeyup="filterTable()" />
-  
-  <label for="status">Status:</label>
-  <select id="status" name="status" onchange="filterTable()">
-    <option value="">All</option>
-    <option value="booked" <%= "booked".equals(request.getParameter("status")) ? "selected" : "" %>>Booked</option>
-    <option value="cancelled" <%= "cancelled".equals(request.getParameter("status")) ? "selected" : "" %>>cancelled</option>
-  </select>
-</div>
-
-
-    </form>
+    <div class="filter-group">
+         <label for="dateFilter">Date:</label>
+        <input type="text" id="dateFilter" name="dateFilter" placeholder="Select Date" />
+        <label for="name">Player Name:</label>
+        <input type="text" id="name" name="name" placeholder="Search player..." />
+        <label for="status">Status:</label>
+        <select id="status" name="status">
+            <option value="">All</option>
+            <option value="booked">Booked</option>
+            <option value="cancelled">Cancelled</option>
+        </select>
+    </div>
 
     <div class="slots-card">
         <div class="scroll-table">
-            <table>
+            <table id="appointmentsTable">
                 <thead>
                     <tr>
-                        <th>Time</th>
                         <th>Players</th>
+                        <th>Appointment Date</th>
+                        <th>Time</th>
+                        <th>Service</th>
                         <th>Status</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                <%
-                    String dateParam = request.getParameter("date");
-                    if (dateParam != null && !dateParam.isEmpty()) {
-                        try {
-                            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                            java.util.Date parsedDate = sdf.parse(dateParam);
-                            java.sql.Date sqlDate = new java.sql.Date(parsedDate.getTime());
-
-                            List<Map<String, String>> reportData = Admin.viewReport(sqlDate);
-                            for (Map<String, String> record : reportData) {
-                                String slotTime = record.get("slot_time");
-                                String players = record.get("players");
-                                String status = record.get("status");
-                %>
-                    <tr>
-                        <td><%= slotTime %></td>
-                        <td><%= (players != null ? players : "No players booked") %></td>
-                        <td><%= (status != null ? status : "Unknown") %></td>
-                      <td>
-<%
-    String bookingIdForButton = record.get("booking_id"); // Use a different variable name to avoid conflict
-    if ("booked".equalsIgnoreCase(status) && bookingIdForButton != null) {
-%>
-    <button type="button" class="delete-button" data-booking-id="<%= bookingIdForButton %>" onclick="return confirmAndDelete(<%= bookingIdForButton %>)">
-        <i class="fas fa-trash"></i>
-    </button>
-<%
-    } else {
-%>
-    &mdash;  <!-- or empty if you want -->
-<%
-    }
-%>
-</td>
-                    </tr>
-                <%
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                %>
-                    <tr><td colspan="4">Error loading report.</td></tr>
-                <%
-                        }
-                    } else {
-                %>
-                    <tr><td colspan="4">Please select a date to view report.</td></tr>
-                <%
-                    }
-                %>
+                    <!-- Appointments will be loaded here by manage.js -->
+                    <tr><td colspan="7">Loading appointments...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -523,7 +404,7 @@ input:checked + .slider:before {
 <h3 style="text-align: center; color:green ;">Select a Holiday</h3>
 <center>
 <form method="post">
-    <input type="date" name="day_date"  >
+    <input type="date" name="day_date" id="holidayDateInput">
     <button type="submit">Add Holiday</button>
 </form>
 </center>
@@ -532,13 +413,13 @@ input:checked + .slider:before {
 <% } %>
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="scripts/manage.js"></script>
 
 
 
     
 <script>
-  flatpickr("#holidayPicker", {
-    mode: "multiple",
+  flatpickr("#holidayDateInput", {
     dateFormat: "Y-m-d"
   });
   // Optionally add client-side filtering of table rows while typing
@@ -603,23 +484,6 @@ window.onload = function() {
 // Optional: add event listeners if you haven't already
 document.getElementById('name').addEventListener('input', filterTable);
 document.getElementById('status').addEventListener('change', filterTable);
-
-    
-  
-    function toggleModeText() {
-        const modeToggle = document.getElementById('modeToggle');
-        const switchText = document.getElementById('switchText');
-
-        if (modeToggle.checked) {
-            switchText.textContent = 'Ramadan';
-        } else {
-            switchText.textContent = 'Regular';
-        }
-    }
-
-
-
-
 
 </script>
 

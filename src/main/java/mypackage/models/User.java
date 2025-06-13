@@ -20,7 +20,7 @@ public class User {
     protected String gender;
     protected Date dob;
     private String role; // Add this line
-    private String season ="Ramadan"; // Default season is Ramadan";
+    private String season ="Ramadan";
 
 
     public String getSeason() {
@@ -53,13 +53,6 @@ public class User {
         this.gender = gender;
         this.dob = dob;
     }
-public void toggleSeason() {
-    if (this.season.equalsIgnoreCase("Regular")) {
-        this.season = "Ramadan";
-    } else {
-        this.season = "Regular";
-    }
-}
 
     // Method to login user
     public boolean login(String email, String password) throws SQLException {
@@ -83,6 +76,7 @@ public void toggleSeason() {
         }
         return false;
     }
+
 
     public List<String> getAllEmployeeFullNames() {
         List<String> fullNames = new ArrayList<>();
@@ -119,6 +113,26 @@ public void toggleSeason() {
         return femaleNames;
     }
 
+    public static List<Map<String, String>> getAllEmployeeDetails() {
+        List<Map<String, String>> employeeDetails = new ArrayList<>();
+        String sql = "SELECT first_name || ' ' || last_name AS full_name, gender FROM emp_master_data";
+
+        try (Connection conn = DataBase.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                Map<String, String> employee = new HashMap<>();
+                employee.put("full_name", rs.getString("full_name"));
+                employee.put("gender", rs.getString("gender"));
+                employeeDetails.add(employee);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return employeeDetails;
+    }
 
     // Method to see available game slots for male
     public static List<String[]> seeAvailableSlots(java.util.Date gameDate) {
@@ -136,7 +150,8 @@ public void toggleSeason() {
                     int slotId = rs.getInt("slot_id");
                     String startTime = rs.getString("start_time");
                     String endTime = rs.getString("end_time");
-                    slots.add(new String[]{startTime, endTime, String.valueOf(slotId)});
+                    String genderGroup = "male"; // Default for male slots
+                    slots.add(new String[]{startTime, endTime, String.valueOf(slotId), genderGroup});
                 }
             }
         } catch (Exception e) {
@@ -163,7 +178,8 @@ public void toggleSeason() {
                     int slotId = rs.getInt("slot_id");
                     String startTime = rs.getString("start_time");
                     String endTime = rs.getString("end_time");
-                    slots.add(new String[]{startTime, endTime, String.valueOf(slotId)});
+                    String genderGroup = "male"; // Default for male slots
+                    slots.add(new String[]{startTime, endTime, String.valueOf(slotId), genderGroup});
                 }
             }
         } catch (Exception e) {
@@ -177,7 +193,7 @@ public void toggleSeason() {
         List<String[]> slots = new ArrayList<>();
         try (Connection conn = DataBase.getConnection()) {
             String sql ="SELECT s.slot_id, TO_CHAR(s.start_time, 'HH24:MI') AS start_time, \n" + //
-                                "  TO_CHAR(s.end_time, 'HH24:MI') AS end_time FROM slots s " + //
+                                "  TO_CHAR(s.end_time, 'HH24:MI') AS end_time, gender_group FROM slots s " + //
                                 "WHERE s.slot_id not in (SELECT slot_id from booking_game where status ='booked' and game_date = ?)";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setDate(1, new java.sql.Date(gameDate.getTime()));
@@ -187,7 +203,8 @@ public void toggleSeason() {
                     int slotId = rs.getInt("slot_id");
                     String startTime = rs.getString("start_time");
                     String endTime = rs.getString("end_time");
-                    slots.add(new String[]{startTime, endTime, String.valueOf(slotId)});
+                    String genderGroup = rs.getString("gender_group");
+                    slots.add(new String[]{startTime, endTime, String.valueOf(slotId), genderGroup});
                 }
             }
         } catch (Exception e) {
@@ -201,7 +218,7 @@ public void toggleSeason() {
         List<String[]> slots = new ArrayList<>();
         try (Connection conn = DataBase.getConnection()) {
             String sql ="SELECT s.slot_id, TO_CHAR(s.start_time, 'HH24:MI') AS start_time, \n" + //
-                                "\tTO_CHAR(s.end_time, 'HH24:MI') AS end_time FROM slots s \n" + //
+                                "\tTO_CHAR(s.end_time, 'HH24:MI') AS end_time, gender_group FROM slots s \n" + //
                                 "\tWHERE  s.season_time ='ramadan' AND s.slot_id not in \n" + //
                                 "\t(SELECT slot_id from booking_game \n" + //
                                 "\twhere status ='booked' and game_date = ? )";
@@ -213,7 +230,8 @@ public void toggleSeason() {
                     int slotId = rs.getInt("slot_id");
                     String startTime = rs.getString("start_time");
                     String endTime = rs.getString("end_time");
-                    slots.add(new String[]{startTime, endTime, String.valueOf(slotId)});
+                    String genderGroup = rs.getString("gender_group");
+                    slots.add(new String[]{startTime, endTime, String.valueOf(slotId), genderGroup});
                 }
             }
         } catch (Exception e) {

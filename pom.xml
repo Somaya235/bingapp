@@ -60,17 +60,20 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-    <groupId>com.zaxxer</groupId>
-    <artifactId>HikariCP</artifactId>
-    <version>5.0.1</version>  <!-- أو أحدث نسخة متاحة -->
-</dependency>
-
-
+      <groupId>com.zaxxer</groupId>
+      <artifactId>HikariCP</artifactId>
+      <version>5.0.1</version>  <!-- أو أحدث نسخة متاحة -->
+    </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20231013</version>
+    </dependency>
 
   </dependencies>
 
   <build>
-    <finalName>myjspapp</finalName>
+    <finalName>ROOT</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
