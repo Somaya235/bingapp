@@ -1,0 +1,24 @@
+.action-link {
+    display: inline-flex; /* Use flexbox for icon and text alignment */
+    align-items: center;
+    gap: 5px; /* Space between icon and text */
+    margin: 0 5px; /* Space between Edit and Delete links */
+    text-decoration: none;
+    color: #2e7d32; /* Green color for links */
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.action-link:hover {
+    color: #1b5e20; /* Darker green on hover */
+    text-decoration: underline;
+}
+
+/* Specific style for delete button to make it red */
+.action-link .fa-trash {
+    color: #c62828; /* Red color for trash icon */
+}
+
+.action-link .fa-edit {
+    color: #2e7d32; /* Green color for edit icon */
+}
