@@ -77,6 +77,14 @@ public class User {
         return false;
     }
 
+    public void toggleSeason() {
+    if (this.season.equalsIgnoreCase("Regular")) {
+        this.season = "Ramadan";
+    } else {
+        this.season = "Regular";
+    }
+}
+
     public List<String> getAllEmployeeFullNames() {
         List<String> fullNames = new ArrayList<>();
         String sql = "SELECT first_name || ' ' || last_name AS full_name FROM emp_master_data";
