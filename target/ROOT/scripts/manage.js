@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
     fetchAndRenderTable();
 
     async function fetchAndRenderTable(filterDate = null) {
-        let url = '/bingapp/manage-api';
+        let url = '/manage-api';
         if (filterDate) {
             url += `?date=${filterDate}`;
         }
