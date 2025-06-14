@@ -142,7 +142,7 @@ if (user != null && user.getGender() != null) {
 
         <div class="opponent-container">
           
-          <div class="time-slot-scroll" id="timeSlotsContainer">
+          <div class="time-slot-scroll" id="timeSlotsContainer" style="display:flex; flex-direction: column;">
             <label>Select Time Slots (max 5)</label>
             <p>Please pick a date to see available time slots</p>
           </div>
@@ -175,7 +175,8 @@ if (user != null && user.getGender() != null) {
   const allEmployees = <%= employeeDetailsJson %>;
   const players = allEmployees.map(emp => ({ name: emp.full_name, gender: emp.gender }));
   let opponentType = "Squad"; 
-  const loggedInUser = "<%= loggedInUserFullName %>"; // Moved to global scope
+  const loggedInUser = "<%= loggedInUserFullName %>";
+  const serverTime = new Date('<%= new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm").format(new java.util.Date()) %>'); // Moved to global scope
 
   // Global functions
   function formatDateLocal(date) {
@@ -183,7 +184,8 @@ if (user != null && user.getGender() != null) {
   const month = String(date.getMonth() + 1).padStart(2, '0'); // Months 0-based
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
-  }
+}
+
 
   function updateOpponentSelect() {
   const type = document.getElementById("type").value;
@@ -446,13 +448,16 @@ function fetchAvailableSlots() {
 
         if (slots.length === 0) {
             slotContainer.innerHTML += '<p>No slots available for this date and gender.</p>';
-            document.getElementById('searchOpponent').disabled = true;
             document.getElementById('opponentContainer').style.display = 'none';
             return;
         }
 
         slots.forEach(slot => {
             const div = document.createElement('div');
+            div.style.display = 'flex'; // Add flex display to keep items on same line
+            div.style.alignItems = 'center'; // Vertically center items
+            div.style.margin = '5px 0'; // Add some spacing between items
+
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.name = 'timeSlots';
@@ -461,11 +466,13 @@ function fetchAvailableSlots() {
             checkbox.setAttribute('data-start-time', slot.start_time);
             checkbox.setAttribute('data-end-time', slot.end_time);
             checkbox.setAttribute('data-gender-group', slot.gender_group);
-            checkbox.onchange = checkTimeSlotLimit; 
+            checkbox.onchange = checkTimeSlotLimit;
+            checkbox.style.marginRight = '10px'; // Add space between checkbox and label
 
             const label = document.createElement('label');
             label.htmlFor = 'slot-' + slot.slot_id;
             label.textContent = slot.start_time + ' - ' + slot.end_time;
+            label.style.margin = '0'; // Remove default margin
 
             div.appendChild(checkbox);
             div.appendChild(label);
@@ -489,7 +496,6 @@ function fetchAvailableSlots() {
         slotContainer.innerHTML = '<label>Select Time Slots (max 5)</label><p>Error loading slots. Please try again.</p>';
     });
 }
-
 function updateOpponentSelectionBasedOnTimeSlot() {
     const opponentSearch = document.getElementById('searchOpponent');
     const opponentContainer = document.getElementById('opponentContainer');
@@ -505,54 +511,52 @@ function updateOpponentSelectionBasedOnTimeSlot() {
     }
     checkTimeSlotLimit(); 
 }
-
 function checkPlayerBookingLimit(empName) {
-      const selectedDate = document.getElementById("date").value;
-      const selectedSlots = document.querySelectorAll("input[name='timeSlots']:checked").length;
-      const loadingOverlay = document.getElementById('loadingOverlay');
+    const selectedDate = document.getElementById("date").value;
+    const selectedSlots = document.querySelectorAll("input[name='timeSlots']:checked").length;
+    const loadingOverlay = document.getElementById('loadingOverlay');
 
-      if (!selectedDate || selectedSlots === 0) {
+    if (!selectedDate || selectedSlots === 0) {
         return;
-      }
-     loadingOverlay.style.display = 'flex';
-      fetch('CheckBookingLimitServlet', {
+    }
+    loadingOverlay.style.display = 'flex';
+    fetch('CheckBookingLimitServlet', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: 'empName=' + encodeURIComponent(empName) +
               '&date1=' + encodeURIComponent(selectedDate) +
               '&numSlots=' + encodeURIComponent(selectedSlots)
-      })
-      .then(response => response.text())
-      .then(result => {
+    })
+    .then(response => response.text())
+    .then(result => {
         if (result.trim() === "false") {
-          alert(empName + " has exceeded the booking limit for this day.");
+            alert(empName + " has exceeded the booking limit for this day.");
 
-          const checkboxes = document.querySelectorAll("input[name='opponents']");
-          checkboxes.forEach(box => {
-            if (box.value === empName) {
-              box.checked = false;
+            const checkboxes = document.querySelectorAll("input[name='opponents']");
+            checkboxes.forEach(box => {
+                if (box.value === empName) {
+                    box.checked = false;
+                }
+            });
+
+            const select = document.querySelector("select[name='opponent']");
+            if (select && select.value === empName) {
+                select.value = "";
             }
-          });
 
-          const select = document.querySelector("select[name='opponent']");
-          if (select && select.value === empName) {
-            select.value = "";
-          }
-
-          if (empName === loggedInUser) {
-            const timeSlots = document.querySelectorAll("input[name='timeSlots']:checked");
-            timeSlots.forEach(slot => slot.checked = false);
-          }
+            if (empName === loggedInUser) {
+                const timeSlots = document.querySelectorAll("input[name='timeSlots']:checked");
+                timeSlots.forEach(slot => slot.checked = false);
+            }
         }
-      })
-  .catch(error => console.error('Error fetching slots:', error))
+    })
+    .catch(error => console.error('Error fetching slots:', error))
     .finally(() => {
         loadingOverlay.style.display = 'none';
     });
-    }
-
+}
 
 document.addEventListener('DOMContentLoaded', function() {
   const dateInput = document.getElementById('date');

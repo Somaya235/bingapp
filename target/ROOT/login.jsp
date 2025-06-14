@@ -43,6 +43,93 @@
     <title>Login</title>
     <link rel="stylesheet" href="styles/login.css">
 </head>
+<style>
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Allow scrolling if the content is too big */
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    min-width: 600px; /* Minimum width to prevent the layout from collapsing */
+    font-family: 'Poppins', Arial, sans-serif;
+    background-repeat: no-repeat;
+}
+
+.img {
+    flex: 2; /* Image takes 2 parts */
+    object-fit: cover;
+}
+
+.login-form {
+    flex: 1; /* Form takes 1 part */
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 25px;
+    background-color: rgba(255, 255, 255, 0.85);
+}
+
+.username,
+.password {
+    width: 80%;
+    height: 60px;
+    padding: 15px;
+    border: none;
+    border-radius: 45px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+    background-color: rgb(233, 233, 233);
+}
+
+.button1 {
+    width: 75%;
+    height: 60px;
+    background-color: #2b9d5c;
+    color: white;
+    border: none;
+    border-radius: 45px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.button1:hover {
+    background-color: #45a049;
+}
+
+/* Make sure layout stays side by side even on small screens */
+@media (max-width: 768px) {
+    .container {
+        min-width: 600px; /* This ensures the layout does not break */
+    }
+}
+
+/* Optional: On very small screens, allow more compact spacing */
+@media (max-width: 500px) {
+    .username,
+    .password,
+    .button1 {
+        width: 95%;
+    }
+
+    .login-form {
+        padding: 30px 15px;
+    }
+}
+
+
+</style>
 <body>
 
 <div class="container">

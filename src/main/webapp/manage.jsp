@@ -3,7 +3,11 @@
 
 <%
     request.setCharacterEncoding("UTF-8");
-
+User user = (User) session.getAttribute("loggedInUser");
+    if (user == null) {
+        response.sendRedirect("login.jsp"); // Or your login page
+        return;
+    }
     // Only process deletion on POST
     if ("POST".equalsIgnoreCase(request.getMethod())) {
         String deleteBookingIdStr = request.getParameter("deleteBookingId");
@@ -68,8 +72,9 @@ body {
     background: linear-gradient(to bottom right, #e8f5e9, #ffffff);
 }
 
+
 .navbar {
-      background: linear-gradient(to right,rgb(133, 216, 137), #1b5e20);
+    background: linear-gradient(to right,rgb(133, 216, 137), #1b5e20);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -348,7 +353,65 @@ form {
   width: 140px;
 
 }
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
 
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #2e7d32;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+/* Optional: Rounded slider */
+.slider.round {
+  border-radius: 24px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+#holidayDateInput{
+    border-radius:6px;
+    height:30px;
+
+}
 
 
 </style>
@@ -360,7 +423,16 @@ form {
             <a href="booking_admin.jsp">Book</a>
             <a href="profile_admin.jsp">Profile</a>
             <a href="manage.jsp">Manage</a>
-            
+        <form action="seasonToggle.jsp" method="post" style="display: flex; align-items: center; gap: 10px;">
+    <label class="switch">
+        <input type="checkbox" name="seasonSwitch" id="seasonSwitch" onchange="this.form.submit()"
+               <%= user.getSeason().equals("Ramadan") ? "checked" : "" %> >
+        <span class="slider round"></span>
+    </label>
+    <span style="color:white"><%= user.getSeason() %></span>
+</form>
+
+
         </div>
     </div>
 
@@ -372,9 +444,10 @@ form {
          <label for="dateFilter">Date:</label>
         <input type="text" id="dateFilter" name="dateFilter" placeholder="Select Date" />
         <label for="name">Player Name:</label>
-        <input type="text" id="name" name="name" placeholder="Search player..." />
+       <input type="text" id="name" name="name" placeholder="Search player..." onkeyup="filterTable()" />
+
         <label for="status">Status:</label>
-        <select id="status" name="status">
+        <select id="status" name="status" onchange="filterTable()">
             <option value="">All</option>
             <option value="booked">Booked</option>
             <option value="cancelled">Cancelled</option>
@@ -402,7 +475,7 @@ form {
 <h3 style="text-align: center; color:green ;">Select a Holiday</h3>
 <center>
 <form method="post">
-    <input type="date" name="day_date" id="holidayDateInput">
+    <input type="date" name="day_date" id="holidayDateInput" placeholder="Select Holiday">
     <button type="submit">Add Holiday</button>
 </form>
 </center>
@@ -422,23 +495,29 @@ form {
   });
   // Optionally add client-side filtering of table rows while typing
 function filterTable() {
-  const input = document.getElementById('name').value.toLowerCase();
-  const status = document.getElementById('status').value;
-  const rows = document.querySelectorAll('tbody tr');
+    let input = document.getElementById('name').value.toLowerCase();
+    let statusFilter = document.getElementById('status').value.toLowerCase();
+    let table = document.getElementById('appointmentsTable');
+    let rows = table.getElementsByTagName('tr');
 
-  rows.forEach(row => {
-    const playersCell = row.children[1].textContent.toLowerCase();
-    const statusCell = row.children[2].textContent;
+    for (let i = 1; i < rows.length; i++) { // Start from 1 to skip header
+        let playerCell = rows[i].getElementsByTagName('td')[0];
+        let statusCell = rows[i].getElementsByTagName('td')[2];
 
-    const matchesName = playersCell.includes(input);
-    const matchesStatus = status === "" || statusCell === status;
+        if (playerCell && statusCell) {
+            let playerName = playerCell.textContent || playerCell.innerText;
+            let status = statusCell.textContent || statusCell.innerText;
 
-    if (matchesName && matchesStatus) {
-      row.style.display = '';
-    } else {
-      row.style.display = 'none';
+            let nameMatch = playerName.toLowerCase().includes(input);
+            let statusMatch = statusFilter === "" || status.toLowerCase() === statusFilter;
+
+            if (nameMatch && statusMatch) {
+                rows[i].style.display = "";
+            } else {
+                rows[i].style.display = "none";
+            }
+        }
     }
-  });
 }
 
 // Function to handle delete form submission

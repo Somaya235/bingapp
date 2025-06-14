@@ -20,7 +20,7 @@
             if (currentUserId != null) {
                 User userForDeletion = new User();
                 userForDeletion.cancelBooking(bookingId);
-                response.sendRedirect("profile_user.jsp");
+                response.sendRedirect("profile_admin.jsp");
                 return;
             } else {
                 out.println("User not logged in.");
@@ -385,7 +385,7 @@ tbody tr:nth-child(5) { animation-delay: 0.5s; }
                   <td><%= booking.getStatus() %></td>
                  <td>
     <% if ("booked".equalsIgnoreCase(booking.getStatus())) { %>
-        <form method="post" action="profile_user.jsp" style="display:inline;">
+        <form method="post" action="profile_admin.jsp" style="display:inline;">
             <input type="hidden" name="deleteBookingId" value="<%= booking.getBookingId() %>">
             <button type="submit" class="action-btn" onclick="return confirm('Are you sure you want to cancel this booking?')">
                 <i class="fas fa-trash-alt" style="color: #2e7d32;"></i>
@@ -446,6 +446,6 @@ tbody tr:nth-child(5) { animation-delay: 0.5s; }
             session.setAttribute("avatar", avatarFileName);
         }
 
-        response.sendRedirect("profile_user.jsp");
+        response.sendRedirect("profile_admin.jsp");
     }
 %>

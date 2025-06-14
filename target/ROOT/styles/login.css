@@ -1,65 +1,95 @@
-*{
+* {
     padding: 0px;
-    margin:0px;
+    margin: 0px;
     box-sizing: border-box;
-   
 }
-.container {
-  display: flex;
-  height: 100vh;
-  width: 100%;
-  font-family: 'Poppins', Arial, sans-serif;
-  background-repeat: no-repeat;
-  /* Makes the image fill the container */
 
+.container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    font-family: 'Poppins', Arial, sans-serif;
+    background-repeat: no-repeat;
+    flex-wrap: wrap; /* Allow wrapping for small screens */
 }
-.img{
-  height: 100vh;
-  width: 100%;
+
+.img {
+    height: 100vh;
+    width: 65%; /* Adjusted to flex nicely */
+    object-fit: cover; /* Keeps the image scaled properly */
 }
+
 .backimg {
-  display: none; /* We don't need this anymore since background is applied on .container */
+    display: none; /* Still not needed */
 }
 
 .login-form {
-  width: 35%;
-  margin-left: auto; /* Pushes the form to the right */
-  padding: 60px 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 25px;
-  background-color: rgba(255, 255, 255, 0.85); /* Slight white overlay for readability */
-  height: 100vh;
-
+    width: 35%;
+    margin-left: auto;
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 25px;
+    background-color: rgba(255, 255, 255, 0.85);
+    height: 100vh;
 }
-
-
 
 .username,
 .password {
-  width: 80%;
-  height: 60px;
-  padding: 15px;
-  border: none;
-  border-radius: 45px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  font-size: 16px;
-  background-color: rgb(233, 233, 233);
+    width: 80%;
+    height: 60px;
+    padding: 15px;
+    border: none;
+    border-radius: 45px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+    background-color: rgb(233, 233, 233);
 }
 
 .button1 {
-  width: 75%;
-  height: 60px;
-  background-color: #2b9d5c;
-  color: white;
-  border: none;
-  border-radius: 45px;
-  font-size: 20px;
-  cursor: pointer;
+    width: 75%;
+    height: 60px;
+    background-color: #2b9d5c;
+    color: white;
+    border: none;
+    border-radius: 45px;
+    font-size: 20px;
+    cursor: pointer;
 }
 
 .button1:hover {
-  background-color: #45a049;
+    background-color: #45a049;
+}
+
+/* Responsive: For tablets and smaller screens */
+@media (max-width: 1024px) {
+    .container {
+        flex-direction: column; /* Stack the image and form */
+    }
+
+    .img {
+        width: 100%;
+        height: 50vh; /* Half of the screen height for the image */
+    }
+
+    .login-form {
+        width: 100%;
+        height: auto; /* Adjust height to content */
+        padding: 40px 20px;
+    }
+}
+
+/* Responsive: For phones */
+@media (max-width: 600px) {
+    .username,
+    .password,
+    .button1 {
+        width: 90%; /* Make input and button wider on small screens */
+    }
+
+    .login-form {
+        padding: 30px 15px;
+    }
 }
